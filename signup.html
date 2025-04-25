@@ -1,58 +1,119 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Sign Up</title>
-    <link rel="stylesheet" href="css/styles.css">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>WECONNECT - Create Account</title>
+  <!-- Firebase SDK Scripts -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+  <!-- End Firebase SDK Scripts -->
+  <style>
+    /* --- Flattened CSS Styling --- */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { height: 100%; }
+    body {
+      font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      background-color: #f0f2f5;
+      min-height: 100vh; display: flex; justify-content: center; align-items: center;
+      padding: 30px 20px;
+    }
+    .container {
+      width: 100%; max-width: 400px; text-align: center;
+      background-color: transparent; padding: 0; box-shadow: none; border-radius: 0;
+    }
+    .logo img { width: 225px; height: auto; margin-bottom: 30px; }
+    h1 { font-size: 1.8rem; font-weight: 600; color: #333; margin-bottom: 10px; }
+    p.subtitle { font-size: 1rem; color: #555; margin-bottom: 35px; line-height: 1.5; }
+    form { display: flex; flex-direction: column; gap: 18px; margin-bottom: 25px; }
+    .input-container input {
+      width: 100%; padding: 14px; border: 1px solid #dce1e6; border-radius: 8px;
+      font-size: 1rem; color: #333; background-color: #fff; font-family: inherit;
+      transition: border-color 0.2s ease-in-out;
+    }
+    .input-container input::placeholder { color: #888; }
+    .input-container input:focus { outline: none; border-color: #1F3A5C; box-shadow: none; }
+    button[type="submit"] {
+      width: 100%; background-color: #1F3A5C; color: #FFFFFF; padding: 14px;
+      border: none; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer;
+      transition: background-color 0.3s, transform 0.1s ease; font-family: inherit;
+    }
+    button[type="submit"]:hover { background-color: #192F4A; }
+    button[type="submit"]:active { transform: scale(0.98); }
+    button[type="submit"]:disabled { background-color: #cccccc; cursor: not-allowed; }
+    .links { margin-top: 25px; font-size: 0.9rem; color: #555; }
+    .links a { color: #1F3A5C; text-decoration: none; font-weight: 500; }
+    .links a:hover { text-decoration: underline; }
+
+    /* Loading Modal Styles */
+    .loading-modal {
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0, 0, 0, 0.6);
+      display: flex; justify-content: center; align-items: center; z-index: 1050; opacity: 0; visibility: hidden;
+      transition: opacity 0.3s ease, visibility 0s linear 0.3s;
+    }
+    .loading-modal.visible { opacity: 1; visibility: visible; transition: opacity 0.3s ease, visibility 0s linear 0s; }
+    .loading-content { background-color: white; padding: 30px 40px; border-radius: 10px; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
+    .loading-content p { margin-top: 15px; color: #333; font-size: 1rem; font-weight: 500; }
+    .spinner { border: 5px solid #f3f3f3; border-top: 5px solid #1F3A5C; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 0 auto; }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+    /* Install Modal Styles (Optional) */
+    .install-modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0, 0, 0, 0.5); display: flex; justify-content: center; align-items: center; z-index: 1000; }
+    .install-banner { background-color: white; border-radius: 10px; padding: 0; display: flex; justify-content: center; align-items: center; max-width: 300px; margin: 10px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); }
+    .install-banner img { max-width: 100%; height: auto; display: block; border-radius: 10px; }
+    .hidden { display: none !important; }
+  </style>
 </head>
-<body class="auth-page">
-
-    <div class="auth-container">
-        <h2>Sign Up</h2>
-        <form id="signup-form" novalidate>
-
-            <!-- Avatar Display -->
-            <div class="avatar-container">
-                <img src="assets/images/user.png" alt="Avatar" class="avatar-image" id="avatar-preview">
-                <!-- Optional: Add input type="file" here later for upload -->
-            </div>
-
-            <!-- Full Name -->
-            <div class="input-group">
-                <label for="full-name">Full Name</label>
-                <input type="text" id="full-name" name="full-name" required autocomplete="name">
-            </div>
-
-            <!-- Email -->
-            <div class="input-group">
-                <label for="email">Email</label>
-                <input type="email" id="email" name="email" required autocomplete="email">
-            </div>
-
-            <!-- Password -->
-            <div class="input-group">
-                <label for="password">Password (min. 6 characters)</label>
-                <input type="password" id="password" name="password" required minlength="6" autocomplete="new-password">
-            </div>
-
-            <!-- Confirm Password -->
-            <div class="input-group">
-                <label for="confirm-password">Confirm Password</label>
-                <input type="password" id="confirm-password" name="confirm-password" required minlength="6" autocomplete="new-password">
-            </div>
-
-            <button type="submit" class="auth-button">Sign Up</button>
-            <div id="error-message" class="error-message"></div>
-        </form>
-         <div class="switch-link">
-            Already have an account? <a href="signin.html">Sign In</a>
-        </div>
+<body>
+  <div class="container">
+    <div class="logo">
+      <img src="assets/images/logo.png" alt="WECONNECT Logo">
     </div>
+    <h1>Create Account</h1>
+    <p class="subtitle">Join the WECONNECT community!</p>
+    <form id="signupForm">
+      <div class="input-container">
+        <input type="text" id="sponsorAccountNumber" placeholder="Sponsor Account Phone (Optional)">
+      </div>
+      <div class="input-container">
+        <input type="text" id="fullName" placeholder="Full Name" required>
+      </div>
+      <div class="input-container">
+        <input type="email" id="email" placeholder="Email Address" required>
+      </div>
+      <div class="input-container">
+        <input type="text" id="phone" placeholder="Phone Number" required>
+      </div>
+      <div class="input-container">
+        <input type="password" id="password" placeholder="Password" required>
+      </div>
+      <div class="input-container">
+        <input type="password" id="confirmPassword" placeholder="Confirm Password" required>
+      </div>
+      <button type="submit">Sign Up</button>
+    </form>
+    <div class="links">
+      Already have an account? <a href="signin.html">Sign In</a>
+    </div>
+  </div>
 
-    <!-- Firebase Module Script (Updated) -->
-    <script type="module">
+  <!-- Loading Modal -->
+  <div id="loadingModal" class="loading-modal hidden">
+    <div class="loading-content">
+      <div class="spinner"></div>
+      <p>Creating your account...</p>
+    </div>
+  </div>
+
+  <!-- Install App Modal (Optional) -->
+  <div id="installModal" class="install-modal hidden">
+    <div class="install-banner" onclick="simulateInstall()"> <!-- Optional trigger -->
+      <img src="/assets/images/logo/install.png" alt="Install Banner"> <!-- Placeholder -->
+    </div>
+  </div>
+
+  <script type="module">
         // Import necessary functions
         import { auth } from './js/firebase-config.js'; // Shared auth instance
         import {
@@ -61,14 +122,14 @@
          } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
         // Get form elements
-        const signupForm = document.getElementById('signup-form');
-        const fullNameInput = document.getElementById('full-name');
+        const signupForm = document.getElementById('signupForm');
+        const fullNameInput = document.getElementById('fullName');
         const emailInput = document.getElementById('email');
         const passwordInput = document.getElementById('password');
-        const confirmPasswordInput = document.getElementById('confirm-password');
-        const submitButton = signupForm.querySelector('.auth-button');
+        const confirmPasswordInput = document.getElementById('confirmPassword');
+        const submitButton = signupForm.querySelector('button[type="submit"]');
         const errorMessageDiv = document.getElementById('error-message');
-        const defaultPhotoURL = 'assets/images/user.png'; // Default avatar path
+        const defaultPhotoURL = 'assets/images/user.png';
 
         // Add event listener for form submission
         signupForm.addEventListener('submit', async (event) => {

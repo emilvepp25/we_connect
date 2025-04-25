@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign In - WeConnect</title>
+  <!-- Firebase v8 SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+  <style>
+    /* --- CSS Styling (Identical to signup.html) --- */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      background-color: #f0f2f5;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+    .container {
+      width: 100%;
+      max-width: 400px;
+      text-align: center;
+    }
+    .logo img {
+      width: 225px; /* Adjusted to match signup */
+      height: auto;
+      /* max-width: 180px; */ /* Removed max-width to match signup */
+      margin-bottom: 25px;
+    }
+    h1 {
+      font-size: 1.8rem;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 10px;
+    }
+    p.subtitle {
+      font-size: 1rem;
+      color: #555;
+      margin-bottom: 30px;
+      line-height: 1.5;
+    }
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+    .input-container input {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #CCC;
+      border-radius: 8px;
+      font-size: 1rem;
+      color: #333;
+    }
+    button[type="submit"] {
+      width: 100%;
+      background-color: #1F3A5C; /* Primary color */
+      color: #FFFFFF;
+      padding: 14px;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    button[type="submit"]:hover {
+      background-color: #192F4A; /* Darker hover state */
+    }
+    /* Removed .phone-btn styling as it's not used here */
+    .links {
+      margin-top: 25px;
+      font-size: 0.9rem;
+      color: #555;
+    }
+    .links a {
+      color: #1F3A5C;
+      text-decoration: none;
+      font-weight: 500;
+    }
+    .links a:hover {
+      text-decoration: underline;
+    }
+    /* Forgot Password Link Style */
+    .forgot-password {
+        display: block; /* Make it take its own line */
+        margin-top: 15px; /* Add some space above */
+        font-size: 0.9rem;
+    }
+    .install-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(0, 0, 0, 0.5);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+    .install-banner {
+      background-color: white;
+      border-radius: 10px;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      max-width: 300px;
+      margin: 10px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+    .install-banner img {
+      max-width: 100%;
+      height: auto;
+      display: block;
+      border-radius: 10px;
+    }
+    .hidden {
+      display: none;
+    }
+    .loading-indicator {
+      display: none; /* Initially hidden */
+      margin-top: 20px;
+    }
+    .loading-indicator img { /* Assuming a loading GIF */
+      width: 40px;
+      height: 40px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="logo">
+      <!-- Assuming logo path is relative to the auth folder -->
+      <img src="../assets/images/logo/wconnect.png" alt="WeConnect Logo">
+    </div>
+    <h1>Welcome Back!</h1>
+    <p class="subtitle">Sign in to continue your journey with WeConnect.</p>
+    <form id="signinForm">
+      <div class="input-container">
+        <input type="email" id="email" placeholder="Email Address" required>
+      </div>
+      <div class="input-container">
+        <input type="password" id="password" placeholder="Password" required>
+      </div>
+      <button type="submit">Sign In</button>
+    </form>
+
+    <!-- Added loading indicator element -->
+    <div id="loadingIndicator" class="loading-indicator">
+        <img src="../assets/images/loading.gif" alt="Loading..."> <!-- Placeholder path -->
+    </div>
+
+    <div class="links">
+        <a href="forgot-password.html" class="forgot-password">Forgot Password?</a>
+        <p style="margin-top: 10px;">
+          Don't have an account? <a href="signup.html">Sign Up</a>
+        </p>
+    </div>
+  </div>
+
+  <!-- Install Modal (Identical to signup.html) -->
+  <div id="installModal" class="install-modal hidden">
+    <div class="install-banner" onclick="simulateInstall()">
+      <!-- Assuming install banner path -->
+      <img src="/assets/images/logo/install.png" alt="Install Banner">
+    </div>
+  </div>
+
+  <script type="text/javascript">
+    // Firebase configuration (Identical to signup.html)
+    const firebaseConfig = {
+      apiKey: "AIzaSyDwldURmtljNpORmpGRacwXriPmQZjF6j8",
+      authDomain: "daisy-n7g20a.firebaseapp.com",
+      databaseURL: "https://daisy-n7g20a-default-rtdb.firebaseio.com",
+      projectId: "daisy-n7g20a",
+      storageBucket: "daisy-n7g20a.appspot.com",
+      messagingSenderId: "225362605902",
+      appId: "1:225362605902:web:d2551cc389e78c92c3d01f"
+    };
+
+    // Initialize Firebase (Identical to signup.html)
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore(); // Keep firestore if needed later, e.g., update last login
+    // const serverTimestamp = firebase.firestore.FieldValue.serverTimestamp; // Keep if needed
+
+    // Show/Hide Loading Indicator (Identical to signup.html)
+    function showLoadingIndicator() {
+      // Hide the submit button and show the loader
+      document.querySelector('#signinForm button[type="submit"]').style.display = 'none';
+      document.getElementById('loadingIndicator').style.display = 'block';
+    }
+
+    function hideLoadingIndicator() {
+        // Show the submit button and hide the loader
+      document.querySelector('#signinForm button[type="submit"]').style.display = 'block';
+      document.getElementById('loadingIndicator').style.display = 'none';
+    }
+
+    // Sign-In Form Handler
+    document.getElementById('signinForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      showLoadingIndicator(); // Show loader when submission starts
+
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+
+      try {
+        // Sign in user with email and password
+        const userCredential = await auth.signInWithEmailAndPassword(email, password);
+        const user = userCredential.user;
+
+        // Optional: Update last login time in Firestore (Example)
+        // await db.collection('users').doc(user.uid).update({
+        //   lastLogin: serverTimestamp()
+        // });
+
+        alert('Sign In Successful!');
+        // Redirect to the home page or dashboard
+        window.location.href = 'home.html'; // Adjust redirect location if needed
+
+      } catch (error) {
+        console.error("Sign in error:", error);
+        // Provide more user-friendly error messages
+        let errorMessage = "An unknown error occurred. Please try again.";
+        switch (error.code) {
+            case 'auth/user-not-found':
+                errorMessage = "No account found with this email address.";
+                break;
+            case 'auth/wrong-password':
+                errorMessage = "Incorrect password. Please try again.";
+                break;
+            case 'auth/invalid-email':
+                errorMessage = "Please enter a valid email address.";
+                break;
+            case 'auth/too-many-requests':
+                errorMessage = "Access to this account has been temporarily disabled due to many failed login attempts. You can immediately restore it by resetting your password or you can try again later.";
+                break;
+             case 'auth/network-request-failed':
+                errorMessage = "Network error. Please check your internet connection and try again.";
+                break;
+            // Add other Firebase Auth error codes as needed
+        }
+        alert(`Sign In Failed: ${errorMessage}`);
+        hideLoadingIndicator(); // Hide loader on error
+      }
+      // No need to hide loader here if redirect happens on success
+    });
+
+    // Install App Modal Logic (Identical to signup.html)
+    let deferredPrompt;
+    const installModal = document.getElementById('installModal');
+    window.addEventListener('beforeinstallprompt', (e) => {
+      // Prevent the mini-infobar from appearing on mobile
+      e.preventDefault();
+      // Stash the event so it can be triggered later.
+      deferredPrompt = e;
+      // Update UI notify the user they can install the PWA
+      installModal.classList.remove('hidden');
+      console.log('`beforeinstallprompt` event was fired.');
+    });
+
+    window.simulateInstall = function() {
+      if (deferredPrompt) {
+        // Show the install prompt
+        deferredPrompt.prompt();
+        // Wait for the user to respond to the prompt
+        deferredPrompt.userChoice.then((choiceResult) => {
+          if (choiceResult.outcome === 'accepted') {
+            console.log('User accepted the install prompt');
+          } else {
+            console.log('User dismissed the install prompt');
+          }
+          // We've used the prompt, and can't use it again, discard it
+          deferredPrompt = null;
+          // Hide the install banner
+          installModal.classList.add('hidden');
+        });
+      } else {
+        console.log('Install prompt not available or already handled.');
+        // Hide the banner if the prompt isn't available (e.g., already installed or dismissed)
+        installModal.classList.add('hidden');
+      }
+    }
+
+    // Optional: Check if user is already signed in on page load
+    auth.onAuthStateChanged((user) => {
+        if (user) {
+            // User is signed in, perhaps redirect them directly to home
+            console.log("User already signed in:", user.uid);
+            // Uncomment the line below to redirect automatically if logged in
+            // window.location.href = 'home.html';
+        } else {
+            // User is signed out
+            console.log("User is signed out.");
+        }
+    });
+
+  </script>
+</body>
+</html>

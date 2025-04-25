@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>WeConnect - Account</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <!-- PWA Meta Tags -->
+  <meta name="theme-color" content="#696ffa"> <!-- WeConnect Blue -->
+  <meta name="description" content="WeConnect - Account Management">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default"> <!-- Changed to default -->
+  <meta name="apple-mobile-web-app-title" content="WeConnect">
+  <!-- PWA Manifest -->
+  <link rel="manifest" href="/manifest.json">
+  <!-- Apple Touch Icons -->
+  <link rel="apple-touch-icon" href="/icons/icon-192x192.png">
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Icons" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    :root {
+      --WeConnect-blue: #696ffa;
+      --WeConnect-blue-dark: #434ae8; /* Darker shade for hover */
+      --text-dark: #1A1A1A;
+      --text-secondary: #6b7280; /* gray-500 */
+      --card-background: #ffffff;
+      --body-background: #f3f4f6; /* gray-100 */
+      --separator-color: #e5e7eb; /* gray-200 */
+    }
+
+    body {
+      font-family: 'Open Sans', sans-serif;
+      color: var(--text-dark);
+      background-color: var(--body-background);
+      -webkit-tap-highlight-color: transparent;
+      padding-top: 70px; /* Account for fixed header */
+      /* Removed bottom padding */
+    }
+
+    h1, h2, h3, h4, h5, h6, .heading {
+      font-family: 'Roboto', sans-serif;
+    }
+
+    /* --- Header Styling --- */
+     header {
+        background-color: var(--WeConnect-blue); /* WeConnect Blue Theme */
+        color: white; /* White text on blue */
+        position: fixed;
+        top: 0; left: 0; right: 0;
+        z-index: 50;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+        height: 70px;
+        padding-left: 1rem; padding-right: 1rem;
+        /* Apply max-width and centering like body */
+        max-width: 24rem; /* max-w-sm */
+        margin-left: auto; margin-right: auto;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+     header h1 { /* Center title */
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 1.2rem; /* Slightly larger */
+        font-weight: 600;
+    }
+     header .header-button { /* Style for header buttons */
+        color: white;
+        background: none;
+        border: none;
+        padding: 0.5rem;
+        cursor: pointer;
+    }
+     header .header-button .material-icons {
+        font-size: 1.75rem;
+        display: block; /* Prevents extra space below icon */
+    }
+
+    /* --- Loading Animation --- */
+    .loading-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(255, 255, 255, 0.8); display: flex; justify-content: center; align-items: center; z-index: 9999; opacity: 0; visibility: hidden; transition: opacity 0.3s ease, visibility 0.3s ease; }
+    .loading-overlay.active { opacity: 1; visibility: visible; }
+    .loading-spinner { width: 40px; height: 40px; border-radius: 50%; border: 3px solid rgba(105, 111, 250, 0.2); border-top-color: var(--WeConnect-blue); animation: spin 1s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+     /* --- Main Content --- */
+     main { padding: 1rem; } /* Standard padding */
+
+     /* --- User Profile Card --- */
+     .profile-card {
+         background-color: var(--card-background);
+         border-radius: 0.75rem; /* rounded-lg */
+         box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1); /* shadow */
+         margin-bottom: 1.5rem; /* space-y-6 */
+         overflow: hidden; /* Ensure border radius applies */
+     }
+     #userAvatar {
+         width: 4rem; /* w-16 */
+         height: 4rem; /* h-16 */
+         border-radius: 9999px; /* rounded-full */
+         background-color: #e5e7eb; /* bg-gray-200 */
+         margin-right: 1rem; /* mr-4 */
+         flex-shrink: 0; /* Prevent shrinking */
+         background-size: cover;
+         background-position: center;
+         display: flex; /* For initials */
+         align-items: center;
+         justify-content: center;
+         font-weight: bold;
+         color: var(--text-secondary);
+         font-size: 1.5rem;
+     }
+     #userName { font-size: 1.25rem; font-weight: 700; color: var(--text-dark); } /* text-xl font-bold */
+     #userEmail { color: var(--text-secondary); font-size: 0.875rem; word-break: break-all;} /* text-gray-600 */
+     #memberId { color: #9ca3af; font-size: 0.75rem; margin-top: 0.25rem; } /* text-gray-500 text-xs mt-1 */
+     .profile-actions { border-top: 1px solid var(--separator-color); padding: 1rem; display: flex; justify-content: space-between; }
+     .profile-action-button {
+         display: flex; align-items: center; color: var(--text-secondary);
+         font-size: 0.875rem; /* text-sm */ font-weight: 500; /* font-medium */
+         background: none; border: none; cursor: pointer; padding: 0.25rem;
+         transition: color 0.2s ease;
+     }
+     .profile-action-button:hover { color: var(--WeConnect-blue); }
+     .profile-action-button .material-icons { margin-right: 0.25rem; font-size: 1.1rem; color: #9ca3af; } /* text-gray-500 */
+     .profile-action-button:hover .material-icons { color: var(--WeConnect-blue); }
+
+     /* --- Wallet Card --- */
+     .wallet-card {
+         background-color: var(--card-background); border-radius: 0.75rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+         padding: 1rem; margin-bottom: 1.5rem;
+     }
+     #balanceAmount { font-size: 1.5rem; font-weight: 700; } /* text-2xl font-bold */
+     .wallet-button {
+         padding: 0.5rem 1rem; /* px-4 py-2 */ border-radius: 0.5rem; /* rounded-lg */
+         font-size: 0.875rem; font-weight: 500; transition: background-color 0.2s ease; cursor: pointer;
+     }
+     .wallet-button.primary { background-color: var(--WeConnect-blue); color: white; }
+     .wallet-button.primary:hover { background-color: var(--WeConnect-blue-dark); }
+     .wallet-button.secondary { background-color: var(--separator-color); color: var(--text-dark); }
+     .wallet-button.secondary:hover { background-color: #d1d5db; } /* gray-300 */
+     .view-history-button {
+         color: var(--WeConnect-blue); font-weight: 500; font-size: 0.875rem;
+         background: none; border: none; cursor: pointer; padding: 0.25rem;
+     }
+     .view-history-button:hover { text-decoration: underline; }
+
+     /* --- Account Options List --- */
+     .options-list { margin-bottom: 1.5rem; }
+     .options-title { font-weight: 700; color: var(--text-secondary); margin-bottom: 0.5rem; font-size: 0.875rem; padding-left: 0.25rem;}
+     .option-card {
+        background-color: var(--card-background); border-radius: 0.75rem; padding: 1rem;
+        box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1); /* shadow-sm */
+        display: flex; align-items: center; cursor: pointer;
+        transition: transform 0.2s ease, box-shadow 0.2s ease; margin-bottom: 0.75rem; /* space-y-3 */
+     }
+     .option-card:hover { transform: translateY(-2px); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1); }
+     .option-icon-wrapper {
+        width: 2.5rem; /* w-10 */ height: 2.5rem; border-radius: 9999px;
+        display: flex; align-items: center; justify-content: center; margin-right: 0.75rem;
+     }
+     .option-icon-wrapper .material-icons { font-size: 1.4rem; }
+     .option-details { flex: 1; }
+     .option-title { font-weight: 500; color: var(--text-dark); }
+     .option-description { font-size: 0.875rem; color: var(--text-secondary); }
+     .option-chevron { color: #9ca3af; } /* text-gray-400 */
+
+     /* Icon Colors */
+     .icon-bg-blue { background-color: #dbeafe; } .icon-text-blue { color: #3b82f6; }
+     .icon-bg-green { background-color: #d1fae5; } .icon-text-green { color: #10b981; }
+     .icon-bg-purple { background-color: #f3e8ff; } .icon-text-purple { color: #a855f7; }
+     .icon-bg-yellow { background-color: #fef3c7; } .icon-text-yellow { color: #f59e0b; }
+     .icon-bg-red { background-color: #fee2e2; } .icon-text-red { color: #ef4444; }
+     .icon-bg-teal { background-color: #ccfbf1; } .icon-text-teal { color: #14b8a6; }
+     .icon-bg-indigo { background-color: #e0e7ff; } .icon-text-indigo { color: #6366f1; }
+     .icon-bg-orange { background-color: #ffedd5; } .icon-text-orange { color: #f97316; }
+
+    /* Prevent zoom */
+    * { touch-action: manipulation; /* Prevents double-tap zoom */ }
+  </style>
+  <script>
+    // Prevent zoom on pinch (keep if needed, manipulation often covers it)
+    document.addEventListener('touchstart', function(event) { if (event.touches.length > 1) event.preventDefault(); }, { passive: false });
+    document.addEventListener('touchmove', function(event) { if (event.touches.length > 1) event.preventDefault(); }, { passive: false });
+    // Prevent double-tap zoom (manipulation usually sufficient)
+    // let lastTouchEnd = 0; document.addEventListener('touchend', function(event) { const now = Date.now(); if (now - lastTouchEnd <= 300) event.preventDefault(); lastTouchEnd = now; }, { passive: false });
+  </script>
+</head>
+
+<body class="bg-gray-100 flex flex-col mx-auto min-h-screen max-w-sm w-full">
+  <!-- Loading overlay -->
+  <div id="loading-overlay" class="loading-overlay">
+    <div class="loading-spinner"></div>
+  </div>
+
+  <!-- Header -->
+  <header>
+    <button class="header-button" onclick="window.history.back()">
+        <span class="material-icons">arrow_back</span>
+    </button>
+    <h1>Account</h1>
+    <button class="header-button" id="logoutBtn">
+        <span class="material-icons">logout</span>
+    </button>
+  </header>
+
+  <!-- Main Content -->
+  <main class="flex-1 flex flex-col items-center p-4 w-full overflow-y-auto">
+    <!-- User Profile Card -->
+    <div class="profile-card w-full">
+      <div class="p-4 flex items-center">
+         <!-- Avatar updated by JS -->
+        <div id="userAvatar" class="w-16 h-16 rounded-full bg-gray-200 mr-4 flex-shrink-0">
+            <!-- Initials or Image will be placed here -->
+        </div>
+        <div>
+          <h2 id="userName" class="text-xl font-bold truncate">Loading...</h2>
+          <p id="userEmail" class="text-sm text-gray-600 truncate">Loading...</p>
+          <p id="memberId" class="text-xs text-gray-500 mt-1">Member ID: Loading...</p>
+        </div>
+      </div>
+      <div class="profile-actions">
+        <button class="profile-action-button" onclick="window.location.href='personal-info.html'"> <!-- Updated link -->
+          <span class="material-icons">edit</span>
+          Edit Profile
+        </button>
+        <button class="profile-action-button">
+          <span class="material-icons">verified_user</span>
+          Verify Account
+        </button>
+      </div>
+    </div>
+
+    <!-- Wallet Balance -->
+    <div class="wallet-card w-full">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="font-semibold text-base">Wallet Balance</h3> <!-- Adjusted font -->
+        <button class="view-history-button">View History</button>
+      </div>
+      <div class="flex items-center justify-between">
+        <div>
+          <div id="balanceAmount" class="text-2xl font-bold">₱0.00</div>
+          <div class="text-sm text-gray-600">Available balance</div>
+        </div>
+        <div class="flex space-x-2">
+          <!-- Buttons using WeConnect theme -->
+          <button class="wallet-button primary">Add Money</button>
+          <button class="wallet-button secondary">Withdraw</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Account Options -->
+    <div class="w-full options-list">
+      <h3 class="options-title">Account Management</h3>
+
+      <div class="option-card">
+        <div class="option-icon-wrapper icon-bg-blue">
+          <span class="material-icons icon-text-blue">credit_card</span>
+        </div>
+        <div class="option-details">
+          <h3 class="option-title">Payment Methods</h3>
+          <p class="option-description">Manage your payment options</p>
+        </div>
+        <span class="material-icons option-chevron">chevron_right</span>
+      </div>
+
+      <div class="option-card">
+        <div class="option-icon-wrapper icon-bg-green">
+          <span class="material-icons icon-text-green">receipt_long</span>
+        </div>
+        <div class="option-details">
+          <h3 class="option-title">Transaction History</h3>
+          <p class="option-description">View your past transactions</p>
+        </div>
+        <span class="material-icons option-chevron">chevron_right</span>
+      </div>
+
+      <div class="option-card">
+        <div class="option-icon-wrapper icon-bg-purple">
+          <span class="material-icons icon-text-purple">security</span>
+        </div>
+        <div class="option-details">
+          <h3 class="option-title">Security Settings</h3>
+          <p class="option-description">Manage password and security</p>
+        </div>
+        <span class="material-icons option-chevron">chevron_right</span>
+      </div>
+    </div>
+
+    <!-- Affiliate Program -->
+    <div class="w-full options-list">
+      <h3 class="options-title">Affiliate Program</h3>
+
+      <div class="option-card">
+        <div class="option-icon-wrapper icon-bg-yellow">
+          <span class="material-icons icon-text-yellow">group</span>
+        </div>
+        <div class="option-details">
+          <h3 class="option-title">My Team</h3>
+          <p class="option-description">View and manage your team members</p>
+        </div>
+        <span class="material-icons option-chevron">chevron_right</span>
+      </div>
+
+      <div class="option-card">
+        <div class="option-icon-wrapper icon-bg-red">
+          <span class="material-icons icon-text-red">share</span>
+        </div>
+        <div class="option-details">
+          <h3 class="option-title">Referral Program</h3>
+          <p class="option-description">Invite friends and earn rewards</p>
+        </div>
+        <span class="material-icons option-chevron">chevron_right</span>
+      </div>
+
+      <div class="option-card">
+        <div class="option-icon-wrapper icon-bg-teal">
+          <span class="material-icons icon-text-teal">leaderboard</span>
+        </div>
+        <div class="option-details">
+          <h3 class="option-title">Performance Dashboard</h3>
+          <p class="option-description">Track your affiliate performance</p>
+        </div>
+        <span class="material-icons option-chevron">chevron_right</span>
+      </div>
+    </div>
+
+    <!-- Support Section -->
+    <div class="w-full options-list">
+      <h3 class="options-title">Support</h3>
+
+      <div class="option-card">
+        <div class="option-icon-wrapper icon-bg-indigo">
+          <span class="material-icons icon-text-indigo">help_outline</span>
+        </div>
+        <div class="option-details">
+          <h3 class="option-title">Help Center</h3>
+          <p class="option-description">FAQs and support resources</p>
+        </div>
+        <span class="material-icons option-chevron">chevron_right</span>
+      </div>
+
+      <div class="option-card">
+        <div class="option-icon-wrapper icon-bg-orange">
+          <span class="material-icons icon-text-orange">contact_support</span>
+        </div>
+        <div class="option-details">
+          <h3 class="option-title">Contact Support</h3>
+          <p class="option-description">Get help from our team</p>
+        </div>
+        <span class="material-icons option-chevron">chevron_right</span>
+      </div>
+    </div>
+  </main>
+
+  <!-- Bottom Nav Removed -->
+
+  <!-- Firebase SDKs -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.21.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.21.0/firebase-auth.js";
+    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/9.21.0/firebase-firestore.js";
+
+    // --- Firebase Configuration ---
+    const firebaseConfig = {
+      apiKey: "AIzaSyDwldURmtljNpORmpGRacwXriPmQZjF6j8",
+      authDomain: "daisy-n7g20a.firebaseapp.com",
+      databaseURL: "https://daisy-n7g20a-default-rtdb.firebaseio.com",
+      projectId: "daisy-n7g20a",
+      storageBucket: "daisy-n7g20a.appspot.com",
+      messagingSenderId: "225362605902",
+      appId: "1:225362605902:web:d2551cc389e78c92c3d01f"
+    };
+    // --- End Firebase Configuration ---
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    // DOM elements
+    const loadingOverlay = document.getElementById('loading-overlay');
+    const userAvatar = document.getElementById('userAvatar');
+    const userName = document.getElementById('userName');
+    const userEmail = document.getElementById('userEmail');
+    const memberId = document.getElementById('memberId');
+    const balanceAmount = document.getElementById('balanceAmount');
+    const logoutBtn = document.getElementById('logoutBtn');
+
+    // Show loading initially
+    loadingOverlay.classList.add('active');
+
+    // Check authentication state
+    onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        // User is signed in
+        console.log("Account Page: User is signed in:", user.uid);
+        await loadUserProfile(user); // Pass the user object
+        loadingOverlay.classList.remove('active');
+      } else {
+        // User is signed out, redirect to login
+        console.log("Account Page: User signed out, redirecting.");
+        window.location.href = 'email-login.html';
+      }
+    });
+
+    // Load user profile data
+    async function loadUserProfile(user) {
+      if (!user) { // Guard clause if user is somehow null
+          console.error("loadUserProfile called without a user object.");
+          loadingOverlay.classList.remove('active'); // Ensure loading stops
+          // Maybe display default error state in UI elements
+          userName.textContent = "Error";
+          userEmail.textContent = "Could not load user";
+          memberId.textContent = "Member ID: Error";
+          balanceAmount.textContent = "₱--.--";
+          return;
+      }
+      try {
+        // Get user data from Firestore
+        const userRef = doc(db, "users", user.uid); // Use user.uid
+        const userDoc = await getDoc(userRef);
+        let userData = {}; // Initialize empty object
+
+        if (userDoc.exists()) {
+          userData = userDoc.data();
+          console.log("Firestore data found:", userData);
+        } else {
+            console.warn("Firestore document not found for user:", user.uid);
+            // If no Firestore doc, we still have Auth data
+        }
+
+        // --- Populate UI Elements ---
+
+        // Set user name: Prioritize Firestore 'displayName', then Auth 'displayName', then 'email' part
+        userName.textContent = userData.displayName || user.displayName || user.email?.split('@')[0] || 'User';
+
+        // Set user email (directly from Auth user object)
+        userEmail.textContent = user.email || 'No email associated';
+
+        // Set member ID (only from Firestore)
+        memberId.textContent = `Member ID: ${userData.memberId || 'N/A'}`; // Use 'N/A' or similar if not set
+
+        // Set balance (from Firestore, ensure it's a number)
+        const balance = typeof userData.wallet_balance === 'number' ? userData.wallet_balance : 0; // Default to 0 if not found or not number
+        balanceAmount.textContent = `₱${balance.toFixed(2)}`;
+
+        // Set avatar: Prioritize Firestore 'photo_avatar', then Auth 'photoURL'
+        const avatarUrl = userData.photo_avatar || user.photoURL;
+        userAvatar.innerHTML = ''; // Clear previous content (like initials)
+        if (avatarUrl) {
+          userAvatar.style.backgroundImage = `url('${avatarUrl}')`;
+          userAvatar.style.backgroundSize = 'cover';
+          userAvatar.style.backgroundPosition = 'center';
+          userAvatar.style.backgroundColor = 'transparent'; // Remove bg color if image loads
+        } else {
+          // Fallback to initials if no image URL
+           const nameForInitials = userData.displayName || user.displayName || user.email || 'U';
+           const initials = nameForInitials.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase();
+          userAvatar.style.backgroundImage = 'none'; // Ensure no lingering image
+          userAvatar.innerHTML = `<span class="text-xl">${initials}</span>`; // Adjust text size if needed
+          userAvatar.style.backgroundColor = getRandomColor(); // Assign a color
+        }
+
+      } catch (error) {
+        console.error("Error loading user profile:", error);
+        // Display error state in UI
+        userName.textContent = "Error";
+        userEmail.textContent = "Could not load data";
+        memberId.textContent = "Member ID: Error";
+        balanceAmount.textContent = "₱--.--";
+        userAvatar.innerHTML = `<span class="material-icons text-xl">error_outline</span>`; // Error icon
+        userAvatar.style.backgroundColor = '#ef4444'; // Red background for error
+      }
+    }
+
+    // Handle logout
+    logoutBtn.addEventListener('click', async () => {
+      const confirmation = confirm("Are you sure you want to log out?");
+      if (!confirmation) return;
+
+      try {
+        loadingOverlay.classList.add('active');
+        await signOut(auth);
+        console.log("User signed out successfully.");
+        // Redirect will happen via onAuthStateChanged listener
+      } catch (error) {
+        console.error("Error signing out:", error);
+        showToast("Logout failed. Please try again.", "error"); // Show error feedback
+        loadingOverlay.classList.remove('active');
+      }
+    });
+
+    // Add click event listeners to option cards (Placeholder Action)
+    document.querySelectorAll('.option-card').forEach(card => {
+      card.addEventListener('click', function() {
+        const cardTitle = this.querySelector('.option-title')?.textContent || 'Feature';
+        // For demo: show alert. Replace with actual navigation or action.
+         showToast(`${cardTitle} feature coming soon!`, "info");
+         // Example Navigation:
+         // if (cardTitle === 'Payment Methods') window.location.href = 'payment-methods.html';
+         // else if (cardTitle === 'Security Settings') window.location.href = 'security.html';
+         // etc.
+      });
+    });
+
+    // Helper function to get random color for avatars
+    function getRandomColor() {
+      const colors = ['#6366f1', '#10b981', '#ef4444', '#f59e0b', '#3b82f6', '#a855f7', '#f97316', '#ec4899']; // Updated colors
+      return colors[Math.floor(Math.random() * colors.length)];
+    }
+
+    // --- Utility: Show Toast Notification ---
+    function showToast(message, type = "info") {
+        let toast = document.getElementById('toast-notification');
+        if (!toast) {
+            toast = document.createElement('div');
+            toast.id = 'toast-notification';
+            // Position bottom center
+            toast.className = 'fixed bottom-5 left-1/2 transform -translate-x-1/2 px-4 py-2 rounded-lg text-white text-sm font-medium shadow-lg z-50 transition-all duration-300 opacity-0';
+            document.body.appendChild(toast);
+        }
+
+        toast.textContent = message;
+        // Apply color class based on type
+        toast.classList.remove('bg-green-500', 'bg-red-500', 'bg-blue-500'); // Clear previous colors
+        if (type === "success") toast.classList.add('bg-green-500');
+        else if (type === "error") toast.classList.add('bg-red-500');
+        else toast.classList.add('bg-blue-500'); // Default info
+
+        // Clear existing timers
+        if (toast.timer) clearTimeout(toast.timer);
+
+        // Trigger animation
+        requestAnimationFrame(() => { toast.classList.add('opacity-100'); });
+
+        // Hide after 3 seconds
+        toast.timer = setTimeout(() => { toast.classList.remove('opacity-100'); }, 3000);
+    }
+
+  </script>
+</body>
+</html>
